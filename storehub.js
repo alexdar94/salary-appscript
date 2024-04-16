@@ -77,6 +77,7 @@ function strDrToInt(str) {
 }
 
 function expandStringToNumbers(str) {
+  if (str === '') return [];
   return str.split(',').flatMap(s => {
     if(!s.includes('-')) return +s;
     const [min, max] = s.split('-');
