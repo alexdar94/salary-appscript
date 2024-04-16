@@ -173,9 +173,11 @@ function finalFormat() {
   // First date row
   sh.getRange(1, 1, 1, lastCol - 4).setBorder(true, true, true, true, null, null);
   drawWeekBorder();
-  highlightPH();
+  highlightUL();
   highlightMC();
   highlightAL();
+  highlightPH();
+  highlightWarning();
 }
 
 function calcTotal() {
