@@ -344,9 +344,10 @@ function generateFull() {
       data = [];
       return;
     }
-    data.push(e[2]);
-    data.push(e[3]);
+    if (e[2] !== '') data.push(e[2]);
+    if (e[3] !== '') data.push(e[3]);
   });
+
   // Create for last staff
   createTimesheet(curr, data);
 }
