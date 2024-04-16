@@ -200,6 +200,7 @@ function calcTotal() {
     if (strDrToInt(data[i][3]) > strDrToInt(WORKLESS_TH)) workLess += strDrToInt(data[i][3]);
   }
   const total = [
+    ['', 'Pay rate', !IS_HOURLY ? STAFF_MONTHLY_SALARY : STAFF_HOURLY_SALARY],
     ['Normal hrs', normalHrs, normalHrs * STAFF_HOURLY_SALARY],
     ['PH hrs', phHrs, phHrs * STAFF_HOURLY_SALARY * 2],
     ['Normal OT', normalOT, normalOT * STAFF_HOURLY_SALARY * 1.5],
