@@ -94,7 +94,7 @@ function numToAlphabet(num) {
 // Utility -----------------------------------------------------------------------------------
 
 function highlightPH() {
-  PH_DATES.forEach(p => sh.getRange(parseInt(p) + ROW_OFFSET, 1, 1,  sh.getLastColumn() - 4).setBackgroundColor("orange"));
+    PH_DATES.forEach(p => sh.getRange(parseInt(p) + ROW_OFFSET, 1, 1,  sh.getLastColumn() - 4).setBackgroundColor("#F6B26B"));
 }
 
 function highlightMC() {

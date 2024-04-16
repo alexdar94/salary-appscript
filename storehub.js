@@ -92,19 +92,19 @@ function numToAlphabet(num) {
 // Utility -----------------------------------------------------------------------------------
 
 function highlightPH() {
-  PH_DATES.forEach(p => sh.getRange(parseInt(p) + ROW_OFFSET, 1, 1,  sh.getLastColumn() - 4).setBackgroundColor("orange"));
+  PH_DATES.forEach(p => sh.getRange(parseInt(p) + ROW_OFFSET, 1, 1,  sh.getLastColumn() - 4).setBackgroundColor("#F6B26B"));
 }
 
 function highlightMC() {
   MC_DATES.forEach(p => {
-    sh.getRange(parseInt(p) + ROW_OFFSET, 1, 1,  sh.getLastColumn() - 4).setBackgroundColor("#B0F2FF");
+    sh.getRange(parseInt(p) + ROW_OFFSET, 1, 1,  sh.getLastColumn() - 4).setBackgroundColor("#CFE2F3");
     sh.getRange(parseInt(p) + ROW_OFFSET, 2).setValue('MC');
   });
 }
 
 function highlightAL() {
   AL_DATES.forEach(p => {
-    sh.getRange(parseInt(p) + ROW_OFFSET, 1, 1,  sh.getLastColumn() - 4).setBackgroundColor("#B0FFC0");
+    sh.getRange(parseInt(p) + ROW_OFFSET, 1, 1,  sh.getLastColumn() - 4).setBackgroundColor("#FFF2CC");
     sh.getRange(parseInt(p) + ROW_OFFSET, 2).setValue('AL');
   });
 }
