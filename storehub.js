@@ -14,6 +14,8 @@ const NS_RATE = CONSTANTS.getRange('B6').getValue();
 const NS_DATES = expandStringToNumbers(CONSTANTS.getRange('H5').getValue());
 const MC_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('H6').getValue()); 
 const AL_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('H7').getValue());
+const UL_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('H8').getValue());
+const WARNING_DATES = expandStringToNumbers(CONSTANTS.getRange('H9').getValue());
 
 const SHEET_DATE = new Date(sTEMP.getRange('D3').getValue().split(" ")[0]);
 const PH_DATES = expandStringToNumbers(CONSTANTS.getRange('B7').getValue());
@@ -107,6 +109,17 @@ function highlightAL() {
     sh.getRange(parseInt(p) + ROW_OFFSET, 1, 1,  sh.getLastColumn() - 4).setBackgroundColor("#FFF2CC");
     sh.getRange(parseInt(p) + ROW_OFFSET, 2).setValue('AL');
   });
+}
+
+function highlightUL() {
+  UL_DATES.forEach(p => {
+    sh.getRange(parseInt(p) + ROW_OFFSET, 1, 1,  sh.getLastColumn() - 4).setBackgroundColor("#E6B8AF");
+    sh.getRange(parseInt(p) + ROW_OFFSET, 2).setValue('UL');
+  });
+}
+
+function highlightWarning() {
+  if (WARNING_DATES.length > 0) sh.getRangeList(WARNING_DATES.map(w => `B${w+1}`)).setBackground("red");
 }
 
 // If clock time is before OPENING, or between CLOSING_EARLY and CLOSING
