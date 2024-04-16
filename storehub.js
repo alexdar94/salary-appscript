@@ -12,8 +12,8 @@ const IS_HOURLY = STAFF_MONTHLY_SALARY === "";
 const OT_RATE = STAFF_HOURLY_SALARY * 1.5;
 const NS_RATE = CONSTANTS.getRange('B6').getValue(); 
 const NS_DATES = expandStringToNumbers(CONSTANTS.getRange('H5').getValue());
-const MC_DATES = expandStringToNumbers(CONSTANTS.getRange('H6').getValue()); 
-const AL_DATES = expandStringToNumbers(CONSTANTS.getRange('H7').getValue());
+const MC_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('H6').getValue()); 
+const AL_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('H7').getValue());
 
 const SHEET_DATE = new Date(sTEMP.getRange('D3').getValue().split(" ")[0]);
 const PH_DATES = expandStringToNumbers(CONSTANTS.getRange('B7').getValue());
@@ -258,7 +258,7 @@ function calculateHours() {
     }
 
     // Calc for MC or AL
-    if (!IS_HOURLY && (isMC || isAL) && !isPH) {
+    if ((isMC || isAL) && !isPH) {
       totalWorkHrs = NORMAL_WORK_HOURS;
       normalHrs = NORMAL_WORK_HOURS;
     }
