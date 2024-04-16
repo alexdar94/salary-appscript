@@ -99,19 +99,15 @@ function highlightPH() {
 
 function highlightMC() {
   MC_DATES.forEach(p => {
-    if (p !== 0) {
-      sh.getRange(parseInt(p) + ROW_OFFSET, 1, 1,  sh.getLastColumn() - 4).setBackgroundColor("#B0F2FF");
-      sh.getRange(parseInt(p) + ROW_OFFSET, 2).setValue('MC');
-    }
+    sh.getRange(parseInt(p) + ROW_OFFSET, 1, 1,  sh.getLastColumn() - 4).setBackgroundColor("#CFE2F3");
+    sh.getRange(parseInt(p) + ROW_OFFSET, 2).setValue('MC');
   });
 }
 
 function highlightAL() {
   AL_DATES.forEach(p => {
-    if (p !== 0) {
-      sh.getRange(parseInt(p) + ROW_OFFSET, 1, 1,  sh.getLastColumn() - 4).setBackgroundColor("#B0FFC0");
-      sh.getRange(parseInt(p) + ROW_OFFSET, 2).setValue('AL');
-    }
+    sh.getRange(parseInt(p) + ROW_OFFSET, 1, 1,  sh.getLastColumn() - 4).setBackgroundColor("#FFF2CC");
+    sh.getRange(parseInt(p) + ROW_OFFSET, 2).setValue('AL');
   });
 }
 
