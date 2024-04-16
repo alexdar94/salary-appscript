@@ -347,7 +347,7 @@ function createTimesheet(name, data) {
   outputSh.getRange(1, 1, LAST_DAY_OF_MONTH + ROW_OFFSET, maxRowLen).setValues(fillOutRange(days));
   outputSh.getRange(1, 1, LAST_DAY_OF_MONTH + ROW_OFFSET).setNumberFormat("dd/MM/yyyy");
   outputSh.getRange(2, 2, LAST_DAY_OF_MONTH + ROW_OFFSET, maxRowLen).setNumberFormat("HH:mm");
-  outputSh.getRangeList(toChecks).setBackground("red");
+  if (toChecks.length > 0) outputSh.getRangeList(toChecks).setBackground("red");
 }
 
 function generateFull() {
