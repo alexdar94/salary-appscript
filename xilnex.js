@@ -142,12 +142,13 @@ function highlightToBeEditedTime() {
   }
 }
 
-function drawWeekBorder() {
-  const columns = sh.getLastColumn() > 5 ? sh.getLastColumn() - 4 : sh.getLastColumn();
+function drawWeekBorder(mSheet) {
+  const mSh = mSheet !== undefined ? mSheet : sh; 
+  const columns = mSh.getLastColumn() > 5 ? mSh.getLastColumn() - 4 : mSh.getLastColumn();
   Array.from({length: LAST_DAY_OF_MONTH}, (_, i) => i + 1)
     .forEach(d => {
       if (new Date(`${MONTH}/${d}/${YEAR}`).getDay() === 1)
-        sh.getRange(d + ROW_OFFSET, 1, 1, columns).setBorder(true, null, null, null, null, null);
+        mSh.getRange(d + ROW_OFFSET, 1, 1, columns).setBorder(true, null, null, null, null, null);
     });
 }
 
@@ -351,6 +352,7 @@ function createTimesheet(name, data) {
   outputSh.getRange(1, 1, LAST_DAY_OF_MONTH + ROW_OFFSET).setNumberFormat("dd/MM/yyyy");
   outputSh.getRange(2, 2, LAST_DAY_OF_MONTH + ROW_OFFSET, maxRowLen).setNumberFormat("HH:mm");
   if (toChecks.length > 0) outputSh.getRangeList(toChecks).setBackground("red");
+  drawWeekBorder(outputSh);
 }
 
 function generateFull() {
