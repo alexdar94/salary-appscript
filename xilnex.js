@@ -12,10 +12,13 @@ const STAFF_HOURLY_SALARY = STAFF_MONTHLY_SALARY === "" ?
 const IS_HOURLY = STAFF_MONTHLY_SALARY === "";
 const OT_RATE = STAFF_HOURLY_SALARY * 1.5;
 const NS_RATE = CONSTANTS.getRange('B6').getValue(); 
-const NS_DATES = expandStringToNumbers(CONSTANTS.getRange('H5').getValue()); 
+const NS_DATES = expandStringToNumbers(CONSTANTS.getRange('H5').getValue());
+const NINEHR_DATES = expandStringToNumbers(CONSTANTS.getRange('H10').getValue());
+
 const MC_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('H6').getValue()); 
 const AL_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('H7').getValue());
 const UL_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('H8').getValue());
+
 const WARNING_DATES = expandStringToNumbers(CONSTANTS.getRange('H9').getValue());
 const PH_DATES = expandStringToNumbers(CONSTANTS.getRange('B7').getValue());
 
@@ -27,7 +30,6 @@ const YEAR = SHEET_DATE.getFullYear();
 const LAST_DAY_OF_MONTH = new Date(YEAR,MONTH,0).getDate();
 const NS_START = CONSTANTS.getRange('B4').getValue();
 const NS_END = CONSTANTS.getRange('B5').getValue();
-const NORMAL_WORK_HOURS = CONSTANTS.getRange('B1').getValue()-CONSTANTS.getRange('B2').getValue();
 const WORKLESS_TH = CONSTANTS.getRange('B13').getDisplayValue();
 const ROW_OFFSET = 1;
 const COLUMN_OFFSET = 1;
@@ -232,10 +234,13 @@ function calculateHours() {
     //const nsStartDate = new Date(`${currDate} ${NS_START}`);
     const currDate = days[i][0];
     const nsStartDate = new Date(`${currDate.getFullYear()}-${currDate.getMonth() + 1}-${currDate.getDate()} ${NS_START}`);
-    const hasNS = NS_DATES.includes(days[i][0].getDate());
-    const isPH = PH_DATES.includes(days[i][0].getDate());
-    const isAL = AL_DATES.includes(days[i][0].getDate());
-    const isMC = MC_DATES.includes(days[i][0].getDate());
+    const hasNS = NS_DATES.includes(currDate.getDate());
+    const isPH = PH_DATES.includes(currDate.getDate());
+    const isAL = AL_DATES.includes(currDate.getDate());
+    const isMC = MC_DATES.includes(currDate.getDate());
+    const NORMAL_WORK_HOURS = NINEHR_DATES.includes(currDate.getDate()) ? 
+                              CONSTANTS.getRange('C1').getValue()-CONSTANTS.getRange('B2').getValue() :
+                              CONSTANTS.getRange('B1').getValue()-CONSTANTS.getRange('B2').getValue();
     let totalWorkHrs = 0;
     let normalHrs = 0;
     let dayShiftHrs = 0;
@@ -371,7 +376,7 @@ function generateFull() {
       data[e[0]] = [...data[e[0]], record];
     }
   });
-
+  
   for (let k in data) {
     if (data.hasOwnProperty(k)) {
       createTimesheet(k, data[k]);
