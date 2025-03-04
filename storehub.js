@@ -140,6 +140,11 @@ function highlightToBeEditedTime() {
   }
 }
 
+function clearControl() {
+  var rangeToClear = CONSTANTS.getRange("H2:H10"); 
+  rangeToClear.clearContent();
+}
+
 function drawWeekBorder(mSheet) {
   const mSh = mSheet !== undefined ? mSheet : sh; 
   const columns = mSh.getLastColumn() > 5 ? mSh.getLastColumn() - 4 : mSh.getLastColumn();
