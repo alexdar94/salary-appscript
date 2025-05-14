@@ -67,7 +67,10 @@ function msToTime(s) {
   var mins = s % 60;
   var hrs = (s - mins) / 60;
 
-  return hrs + ':' + mins + ':' + secs; // milliSecs are not shown but you can use ms if needed
+  hrs = hrs < 10 ? "0" + hrs : hrs;
+  mins = mins < 10 ? "0" + mins : mins;
+  return hrs + ':' + mins; 
+}
 }
 
 function strDrToInt(str) {
@@ -297,8 +300,9 @@ function calculateHours() {
     ];
   }
   
-  sh.getRange(1, sh.getLastColumn() + 1, sh.getLastRow(), hours[0].length).setValues(fillOutRange(hours));
-  sh.getRange(2, 2, sh.getLastRow() - ROW_OFFSET, sh.getLastColumn() - COLUMN_OFFSET).setNumberFormat("HH:mm");
+  sh.getRange(1, sh.getLastColumn() + 1, sh.getLastRow(), hours[0].length)
+  .setNumberFormat("@STRING@").setValues(fillOutRange(hours));
+  highlightDurationErrors();
 }
 
 function createTimesheet(name, data) {
