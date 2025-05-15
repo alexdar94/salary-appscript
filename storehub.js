@@ -8,7 +8,7 @@ const TIMEZONE = Session.getScriptTimeZone();
 // Constants sheet values
 const STAFF_MONTHLY_SALARY = CONSTANTS.getRange('H3').getValue();
 const STAFF_HOURLY_SALARY = STAFF_MONTHLY_SALARY === "" ?
-                            CONSTANTS.getRange('H4').getValue() : STAFF_MONTHLY_SALARY/26/7.5;
+                            CONSTANTS.getRange('H4').getValue() : STAFF_MONTHLY_SALARY/26/SIX_WORKDAY_HRS;
 const IS_HOURLY = STAFF_MONTHLY_SALARY === "";
 const OT_RATE = STAFF_HOURLY_SALARY * 1.5;
 const NS_RATE = CONSTANTS.getRange('B6').getValue(); 
@@ -22,6 +22,8 @@ const PH_DATES = expandStringToNumbers(CONSTANTS.getRange('B7').getValue());
 const NS_START = CONSTANTS.getRange('B4').getValue();
 const NS_END = CONSTANTS.getRange('B5').getValue();
 const WORKLESS_TH = CONSTANTS.getRange('B13').getDisplayValue();
+const SIX_WORKDAY_HRS = CONSTANTS.getRange('B1').getValue()-CONSTANTS.getRange('B2').getValue();
+const FIVE_WORKDAY_HRS = CONSTANTS.getRange('C1').getValue()-CONSTANTS.getRange('B2').getValue();
 
 const SHEET_DATE = new Date(sTEMP.getRange('D3').getValue().split(" ")[0]);
 const ONE_HR = 3600000;
@@ -276,9 +278,8 @@ function calculateHours() {
     const isPH = PH_DATES.includes(currDate.getDate());
     const isAL = AL_DATES.includes(currDate.getDate());
     const isMC = MC_DATES.includes(currDate.getDate());
-    const NORMAL_WORK_HOURS = NINEHR_DATES.includes(currDate.getDate()) ? 
-                              CONSTANTS.getRange('C1').getValue()-CONSTANTS.getRange('B2').getValue() :
-                              CONSTANTS.getRange('B1').getValue()-CONSTANTS.getRange('B2').getValue();
+    const NORMAL_WORK_HOURS = NINEHR_DATES.includes(currDate.getDate()) ? FIVE_WORKDAY_HRS : SIX_WORKDAY_HRS;
+    
     let totalWorkHrs = 0;
     let normalHrs = 0;
     let dayShiftHrs = 0;
