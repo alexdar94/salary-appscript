@@ -8,7 +8,7 @@ const TIMEZONE = Session.getScriptTimeZone();
 // Constants sheet values
 const STAFF_MONTHLY_SALARY = CONSTANTS.getRange('H3').getValue();
 const STAFF_HOURLY_SALARY = STAFF_MONTHLY_SALARY === "" ?
-                            CONSTANTS.getRange('H4').getValue() : STAFF_MONTHLY_SALARY/26/SIX_WORKDAY_HRS;
+                            CONSTANTS.getRange('H4').getValue() : STAFF_MONTHLY_SALARY/FT_WORK_DAYS/SIX_WORKDAY_HRS;
 const IS_HOURLY = STAFF_MONTHLY_SALARY === "";
 const OT_RATE = STAFF_HOURLY_SALARY * 1.5;
 const NS_RATE = CONSTANTS.getRange('B6').getValue(); 
@@ -30,6 +30,7 @@ const ONE_HR = 3600000;
 const MONTH = SHEET_DATE.getMonth() + 1;
 const YEAR = SHEET_DATE.getFullYear();
 const LAST_DAY_OF_MONTH = new Date(YEAR,MONTH,0).getDate();
+const FT_WORK_DAYS = 26;
 const ROW_OFFSET = 1;
 const COLUMN_OFFSET = 1;
 const ARRAY_DAY_OFFSET = ROW_OFFSET + 1;
