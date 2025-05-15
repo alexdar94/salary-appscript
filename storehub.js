@@ -71,6 +71,10 @@ function msToTime(s) {
   mins = mins < 10 ? "0" + mins : mins;
   return hrs + ':' + mins; 
 }
+
+function durationStrToMins(s) {
+  const [hours, minutes] = s.split(':').map(Number);
+  return hours * 60 + minutes;
 }
 
 function strDrToInt(str) {
@@ -92,6 +96,11 @@ function expandStringToNumbers(str) {
 
 function numToAlphabet(num) {
   return (num + 9).toString(36).toUpperCase();
+}
+
+function isCellEmpty(cell) {
+  const value = cell.getValue();
+  return value === null || value === undefined || value === '';
 }
 
 // Utility -----------------------------------------------------------------------------------
@@ -123,6 +132,41 @@ function highlightUL() {
 
 function highlightWarning() {
   if (WARNING_DATES.length > 0) sh.getRangeList(WARNING_DATES.map(w => `B${w+1}`)).setBackground("red");
+}
+
+function highlightDurationErrors() {
+  const lastColumn = sh.getLastColumn();
+  const lastRow = sh.getLastRow();
+  sh.getRange(1, lastColumn - 4, lastRow, 5).setBackgroundColor("white");
+
+  // Iterate through rows where Column B is not empty
+  for (let i = 2; i <= lastRow; i++) {
+    if (!isCellEmpty(sh.getRange(i, 2))) {
+      // Get the last 5 columns of the current row
+      const totalHrsCell = sh.getRange(i, lastColumn - 4); // Fifth last (Total hrs)
+      //const normalCell = sh.getRange(i, lastColumn - 3);  // Fourth last (Normal)
+      const otCell = sh.getRange(i, lastColumn - 2);      // Third last (OT)
+      const nightShCell = sh.getRange(i, lastColumn - 1); // Second last (Night sh)
+      //const workLessCell = sh.getRange(i, lastColumn);    // Last (Work less)
+
+      if (isCellEmpty(totalHrsCell)) {
+        totalHrsCell.setBackground('red');
+      } else {
+        // Check if Total hrs has duration more than 12 hours
+        if (durationStrToMins(totalHrsCell.getValue()) > 12 * 60) { // 12 hours in milliseconds
+          totalHrsCell.setBackground('red');
+        }
+        // Check if OT has duration more than 4.5 hours
+        if (!isCellEmpty(otCell) && durationStrToMins(otCell.getValue()) > 4.5 * 60) { // 12 hours in milliseconds
+          otCell.setBackground('red');
+        }
+        // Check if Night sh has duration more than 4.5 hours
+        if (!isCellEmpty(nightShCell) && durationStrToMins(nightShCell.getValue()) > 4.5 * 60) { // 12 hours in milliseconds
+          nightShCell.setBackground('red');
+        }
+      }
+    }
+  }
 }
 
 // If clock time is before OPENING, or between CLOSING_EARLY and CLOSING
