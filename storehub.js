@@ -235,15 +235,16 @@ function calcTotal() {
   let fNightShift = 0;
   let fWorkLess = 0;
   for (i = 0; i < data.length; i++) {
+    const [normal, ot, nightShift, workLess] = data[i];
     if (PH_DATES.includes(i + 1)) {
-      fPhHrs += durationStrToInt(data[i][0]);
-      fPhOT += durationStrToInt(data[i][1]);
+      fPhHrs += durationStrToInt(normal);
+      fPhOT += durationStrToInt(ot);
       continue;
     }
-    fNormalHrs += durationStrToInt(data[i][0]);
-    fNormalOT += durationStrToInt(data[i][1]);
-    fNightShift += durationStrToInt(data[i][2]);
-    if (durationStrToInt(data[i][3]) > durationStrToInt(WORKLESS_TH)) fWorkLess += durationStrToInt(data[i][3]);
+    fNormalHrs += durationStrToInt(normal);
+    fNormalOT += durationStrToInt(ot);
+    fNightShift += durationStrToInt(nightShift);
+    if (durationStrToInt(workLess) > durationStrToInt(WORKLESS_TH)) fWorkLess += durationStrToInt(workLess);
   }
   const total = [
     ['', 'Pay rate', !IS_HOURLY ? STAFF_MONTHLY_SALARY : STAFF_HOURLY_SALARY],
