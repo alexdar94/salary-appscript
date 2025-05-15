@@ -228,32 +228,32 @@ function finalFormat() {
 
 function calcTotal() {
   const data = sh.getRange(ROW_OFFSET + 1, sh.getLastColumn() - 3, sh.getLastRow() - ROW_OFFSET, 4).getDisplayValues();
-  let normalHrs = 0;
-  let phHrs = 0;
-  let normalOT = 0;
-  let phOT = 0;
-  let nightShift = 0;
-  let workLess = 0;
+  let fNormalHrs = 0;
+  let fPhHrs = 0;
+  let fNormalOT = 0;
+  let fPhOT = 0;
+  let fNightShift = 0;
+  let fWorkLess = 0;
   for (i = 0; i < data.length; i++) {
     if (PH_DATES.includes(i + 1)) {
-      phHrs += durationStrToInt(data[i][0]);
-      phOT += durationStrToInt(data[i][1]);
+      fPhHrs += durationStrToInt(data[i][0]);
+      fPhOT += durationStrToInt(data[i][1]);
       continue;
     }
-    normalHrs += durationStrToInt(data[i][0]);
-    normalOT += durationStrToInt(data[i][1]);
-    nightShift += durationStrToInt(data[i][2]);
-    if (durationStrToInt(data[i][3]) > durationStrToInt(WORKLESS_TH)) workLess += durationStrToInt(data[i][3]);
+    fNormalHrs += durationStrToInt(data[i][0]);
+    fNormalOT += durationStrToInt(data[i][1]);
+    fNightShift += durationStrToInt(data[i][2]);
+    if (durationStrToInt(data[i][3]) > durationStrToInt(WORKLESS_TH)) fWorkLess += durationStrToInt(data[i][3]);
   }
   const total = [
     ['', 'Pay rate', !IS_HOURLY ? STAFF_MONTHLY_SALARY : STAFF_HOURLY_SALARY],
-    ['Normal hrs', normalHrs, normalHrs * STAFF_HOURLY_SALARY],
-    ['PH hrs', phHrs, phHrs * STAFF_HOURLY_SALARY * 2],
-    ['Normal OT', normalOT, normalOT * STAFF_HOURLY_SALARY * 1.5],
-    ['PH OT', phOT, phOT * STAFF_HOURLY_SALARY * 3],
-    ['Night shift hrs', nightShift, IS_HOURLY ? nightShift * NS_RATE : nightShift * (NS_RATE - STAFF_HOURLY_SALARY)],
-    !IS_HOURLY ? ['Work less', workLess, workLess * STAFF_HOURLY_SALARY] : [],
-    [, 'Overtime Total', (phHrs * STAFF_HOURLY_SALARY * 2) + (normalOT * STAFF_HOURLY_SALARY * 1.5) + (phOT * STAFF_HOURLY_SALARY * 3)]
+    ['Normal hrs', fNormalHrs, fNormalHrs * STAFF_HOURLY_SALARY],
+    ['PH hrs', fPhHrs, fPhHrs * STAFF_HOURLY_SALARY * 2],
+    ['Normal OT', fNormalOT, fNormalOT * STAFF_HOURLY_SALARY * 1.5],
+    ['PH OT', fPhOT, fPhOT * STAFF_HOURLY_SALARY * 3],
+    ['Night shift hrs', fNightShift, IS_HOURLY ? fNightShift * NS_RATE : fNightShift * (NS_RATE - STAFF_HOURLY_SALARY)],
+    !IS_HOURLY ? ['Work less', fWorkLess, fWorkLess * STAFF_HOURLY_SALARY] : [],
+    [, 'Overtime Total', (fPhHrs * STAFF_HOURLY_SALARY * 2) + (fNormalOT * STAFF_HOURLY_SALARY * 1.5) + (fPhOT * STAFF_HOURLY_SALARY * 3)]
   ];
 
   sh.getRange(1, sh.getLastColumn() + 2, total.length, total[0].length).setValues(fillOutRange(total))
