@@ -5,7 +5,20 @@ const sh = ss.getSheetByName(CONSTANTS.getRange('H2').getValue());
 sTEMP.getRange(2, 2, sTEMP.getLastRow() - 1, sTEMP.getLastColumn() - 1).setNumberFormat('@STRING@');
 const TIMEZONE = Session.getScriptTimeZone();
 
+const SHEET_DATE = new Date(sTEMP.getRange('D3').getValue().split(" ")[0]);
+const ONE_HR = 3600000;
+const MONTH = SHEET_DATE.getMonth() + 1;
+const YEAR = SHEET_DATE.getFullYear();
+const LAST_DAY_OF_MONTH = new Date(YEAR,MONTH,0).getDate();
+const FT_WORK_DAYS = 26;
+const ROW_OFFSET = 1;
+const COLUMN_OFFSET = 1;
+const ARRAY_DAY_OFFSET = ROW_OFFSET + 1;
+const ARRAY_TIME_OFFSET = COLUMN_OFFSET + 1;
+
 // Constants sheet values
+const SIX_WORKDAY_HRS = CONSTANTS.getRange('B1').getValue()-CONSTANTS.getRange('B2').getValue();
+const FIVE_WORKDAY_HRS = CONSTANTS.getRange('C1').getValue()-CONSTANTS.getRange('B2').getValue();
 const STAFF_MONTHLY_SALARY = CONSTANTS.getRange('H3').getValue();
 const STAFF_HOURLY_SALARY = STAFF_MONTHLY_SALARY === "" ?
                             CONSTANTS.getRange('H4').getValue() : STAFF_MONTHLY_SALARY/FT_WORK_DAYS/SIX_WORKDAY_HRS;
@@ -22,19 +35,6 @@ const PH_DATES = expandStringToNumbers(CONSTANTS.getRange('B7').getValue());
 const NS_START = CONSTANTS.getRange('B4').getValue();
 const NS_END = CONSTANTS.getRange('B5').getValue();
 const WORKLESS_TH = CONSTANTS.getRange('B13').getDisplayValue();
-const SIX_WORKDAY_HRS = CONSTANTS.getRange('B1').getValue()-CONSTANTS.getRange('B2').getValue();
-const FIVE_WORKDAY_HRS = CONSTANTS.getRange('C1').getValue()-CONSTANTS.getRange('B2').getValue();
-
-const SHEET_DATE = new Date(sTEMP.getRange('D3').getValue().split(" ")[0]);
-const ONE_HR = 3600000;
-const MONTH = SHEET_DATE.getMonth() + 1;
-const YEAR = SHEET_DATE.getFullYear();
-const LAST_DAY_OF_MONTH = new Date(YEAR,MONTH,0).getDate();
-const FT_WORK_DAYS = 26;
-const ROW_OFFSET = 1;
-const COLUMN_OFFSET = 1;
-const ARRAY_DAY_OFFSET = ROW_OFFSET + 1;
-const ARRAY_TIME_OFFSET = COLUMN_OFFSET + 1;
 
 // Utility -----------------------------------------------------------------------------------
 function init() {
