@@ -5,6 +5,7 @@ const sh = ss.getSheetByName(CONSTANTS.getRange('H2').getValue());
 sTEMP.getRange(2, 2, sTEMP.getLastRow() - 1, sTEMP.getLastColumn() - 1).setNumberFormat('@STRING@');
 const TIMEZONE = Session.getScriptTimeZone();
 
+// Constants sheet values
 const STAFF_MONTHLY_SALARY = CONSTANTS.getRange('H3').getValue();
 const STAFF_HOURLY_SALARY = STAFF_MONTHLY_SALARY === "" ?
                             CONSTANTS.getRange('H4').getValue() : STAFF_MONTHLY_SALARY/26/7.5;
@@ -17,16 +18,16 @@ const MC_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('H6')
 const AL_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('H7').getValue());
 const UL_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('H8').getValue());
 const WARNING_DATES = expandStringToNumbers(CONSTANTS.getRange('H9').getValue());
+const PH_DATES = expandStringToNumbers(CONSTANTS.getRange('B7').getValue());
+const NS_START = CONSTANTS.getRange('B4').getValue();
+const NS_END = CONSTANTS.getRange('B5').getValue();
+const WORKLESS_TH = CONSTANTS.getRange('B13').getDisplayValue();
 
 const SHEET_DATE = new Date(sTEMP.getRange('D3').getValue().split(" ")[0]);
-const PH_DATES = expandStringToNumbers(CONSTANTS.getRange('B7').getValue());
 const ONE_HR = 3600000;
 const MONTH = SHEET_DATE.getMonth() + 1;
 const YEAR = SHEET_DATE.getFullYear();
 const LAST_DAY_OF_MONTH = new Date(YEAR,MONTH,0).getDate();
-const NS_START = CONSTANTS.getRange('B4').getValue();
-const NS_END = CONSTANTS.getRange('B5').getValue();
-const WORKLESS_TH = CONSTANTS.getRange('B13').getDisplayValue();
 const ROW_OFFSET = 1;
 const COLUMN_OFFSET = 1;
 const ARRAY_DAY_OFFSET = ROW_OFFSET + 1;
