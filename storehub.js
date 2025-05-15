@@ -12,12 +12,12 @@ const STAFF_HOURLY_SALARY = STAFF_MONTHLY_SALARY === "" ?
 const IS_HOURLY = STAFF_MONTHLY_SALARY === "";
 const OT_RATE = STAFF_HOURLY_SALARY * 1.5;
 const NS_RATE = CONSTANTS.getRange('B6').getValue(); 
-const NS_DATES = expandStringToNumbers(CONSTANTS.getRange('H5').getValue());
-const NINEHR_DATES = expandStringToNumbers(CONSTANTS.getRange('H10').getValue());
-const MC_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('H6').getValue()); 
-const AL_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('H7').getValue());
-const UL_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('H8').getValue());
-const WARNING_DATES = expandStringToNumbers(CONSTANTS.getRange('H9').getValue());
+const NS_DATES = expandStringToNumbers(CONSTANTS.getRange('J2').getValue());
+const NINEHR_DATES = expandStringToNumbers(CONSTANTS.getRange('J7').getValue());
+const MC_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('J3').getValue()); 
+const AL_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('J4').getValue());
+const UL_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('J5').getValue());
+const WARNING_DATES = expandStringToNumbers(CONSTANTS.getRange('J6').getValue());
 const PH_DATES = expandStringToNumbers(CONSTANTS.getRange('B7').getValue());
 const NS_START = CONSTANTS.getRange('B4').getValue();
 const NS_END = CONSTANTS.getRange('B5').getValue();
