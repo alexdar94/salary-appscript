@@ -72,17 +72,10 @@ function msToTime(s) {
   return hrs + ':' + mins; 
 }
 
-function durationStrToMins(s) {
-  const [hours, minutes] = s.split(':').map(Number);
-  return hours * 60 + minutes;
-}
-
-function strDrToInt(str) {
-  if (str === "") return 0;
-  let d = str.split(':');
-  let hr = parseInt(d[0]);
-  let min = parseInt(d[1]);
-  return hr + (min / 60);
+function durationStrToInt(s) {
+  if (s === "") return 0;
+  const [hrs, mins] = s.split(':').map(Number);
+  return hrs + (mins / 60);
 }
 
 function expandStringToNumbers(str) {
@@ -153,15 +146,15 @@ function highlightDurationErrors() {
         totalHrsCell.setBackground('red');
       } else {
         // Check if Total hrs has duration more than 12 hours
-        if (durationStrToMins(totalHrsCell.getValue()) > 12 * 60) { // 12 hours in milliseconds
+        if (durationStrToInt(totalHrsCell.getValue()) > 12) { // 12 hours in milliseconds
           totalHrsCell.setBackground('red');
         }
         // Check if OT has duration more than 4.5 hours
-        if (!isCellEmpty(otCell) && durationStrToMins(otCell.getValue()) > 4.5 * 60) { // 12 hours in milliseconds
+        if (!isCellEmpty(otCell) && durationStrToInt(otCell.getValue()) > 4.5) { // 12 hours in milliseconds
           otCell.setBackground('red');
         }
         // Check if Night sh has duration more than 4.5 hours
-        if (!isCellEmpty(nightShCell) && durationStrToMins(nightShCell.getValue()) > 4.5 * 60) { // 12 hours in milliseconds
+        if (!isCellEmpty(nightShCell) && durationStrToInt(nightShCell.getValue()) > 4.5) { // 12 hours in milliseconds
           nightShCell.setBackground('red');
         }
       }
@@ -243,14 +236,14 @@ function calcTotal() {
   let workLess = 0;
   for (i = 0; i < data.length; i++) {
     if (PH_DATES.includes(i + 1)) {
-      phHrs += strDrToInt(data[i][0]);
-      phOT += strDrToInt(data[i][1]);
+      phHrs += durationStrToInt(data[i][0]);
+      phOT += durationStrToInt(data[i][1]);
       continue;
     }
-    normalHrs += strDrToInt(data[i][0]);
-    normalOT += strDrToInt(data[i][1]);
-    nightShift += strDrToInt(data[i][2]);
-    if (strDrToInt(data[i][3]) > strDrToInt(WORKLESS_TH)) workLess += strDrToInt(data[i][3]);
+    normalHrs += durationStrToInt(data[i][0]);
+    normalOT += durationStrToInt(data[i][1]);
+    nightShift += durationStrToInt(data[i][2]);
+    if (durationStrToInt(data[i][3]) > durationStrToInt(WORKLESS_TH)) workLess += durationStrToInt(data[i][3]);
   }
   const total = [
     ['', 'Pay rate', !IS_HOURLY ? STAFF_MONTHLY_SALARY : STAFF_HOURLY_SALARY],
