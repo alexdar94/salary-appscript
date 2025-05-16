@@ -33,6 +33,7 @@ const AL_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('J4')
 const UL_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('J5').getValue());
 const WARNING_DATES = expandStringToNumbers(CONSTANTS.getRange('J6').getValue());
 const PH_DATES = expandStringToNumbers(CONSTANTS.getRange('B7').getValue());
+const TRIPLE_DATES = expandStringToNumbers(CONSTANTS.getRange('J8').getValue());
 const NS_START = CONSTANTS.getRange('B4').getValue();
 const NS_END = CONSTANTS.getRange('B5').getValue();
 const WORKLESS_TH = CONSTANTS.getRange('B13').getDisplayValue();
@@ -255,33 +256,41 @@ function calcTotal() {
   let fPhHrs = 0;
   let fNormalOT = 0;
   let fPhOT = 0;
+  let fTripleHrs = 0;
   let fNightShift = 0;
   let fWorkLess = 0;
   for (i = 0; i < data.length; i++) {
     const [total, normal, ot, nightShift, workLess] = data[i];
     if (total === '') continue;
     fTotalHrs += durationStrToInt(total);
-    if (PH_DATES.includes(i + 1)) {
+    if (TRIPLE_DATES.includes(i + 1)) {
+      fTripleHrs += durationStrToInt(total);
+    } else if (PH_DATES.includes(i + 1)) {
       fPhHrs += durationStrToInt(normal);
       fPhOT += durationStrToInt(ot);
-      continue;
+    } else {
+      fNormalHrs += durationStrToInt(normal);
+      fNormalOT += durationStrToInt(ot);
+      fNightShift += durationStrToInt(nightShift);
+      if (durationStrToInt(workLess) > durationStrToInt(WORKLESS_TH)) fWorkLess += durationStrToInt(workLess);
     }
-    fNormalHrs += durationStrToInt(normal);
-    fNormalOT += durationStrToInt(ot);
-    fNightShift += durationStrToInt(nightShift);
-    if (durationStrToInt(workLess) > durationStrToInt(WORKLESS_TH)) fWorkLess += durationStrToInt(workLess);
   }
+  const normalOTSal = fNormalOT * STAFF_HOURLY_SALARY * 1.5;
+  const phOTSal = fPhOT * STAFF_HOURLY_SALARY * 3;  
+  const phSal = fPhHrs * STAFF_HOURLY_SALARY * 2;
+  const tripleSal = fTripleHrs * STAFF_HOURLY_SALARY * 3;
   const total = [
     ['', 'Pay rate', !IS_HOURLY ? STAFF_MONTHLY_SALARY : STAFF_HOURLY_SALARY],
     ['Normal hrs', fNormalHrs, fNormalHrs * STAFF_HOURLY_SALARY],
-    ['Normal OT', fNormalOT, fNormalOT * STAFF_HOURLY_SALARY * 1.5],
-    ['PH hrs', fPhHrs, fPhHrs * STAFF_HOURLY_SALARY * 2],
-    ['PH OT', fPhOT, fPhOT * STAFF_HOURLY_SALARY * 3],
+    ['Normal OT', fNormalOT, normalOTSal],
+    ['PH hrs', fPhHrs, phSal],
+    ['PH OT', fPhOT, phOTSal],
+    fTripleHrs !== 0 ? ['Triple hrs', fTripleHrs, tripleSal] : [],
     ['Night shift hrs', fNightShift, IS_HOURLY ? fNightShift * NS_RATE : fNightShift * (NS_RATE - STAFF_HOURLY_SALARY)],
     !IS_HOURLY ? ['Work less', fWorkLess, fWorkLess * STAFF_HOURLY_SALARY] : [],
     calcAllowance(fTotalHrs, fWorkLess),
-    [, 'Overtime Total', (fPhHrs * STAFF_HOURLY_SALARY * 2) + (fNormalOT * STAFF_HOURLY_SALARY * 1.5) + (fPhOT * STAFF_HOURLY_SALARY * 3)]
-  ];
+    [, 'Overtime Total', phSal + normalOTSal + phOTSal + tripleSal]
+  ].filter(row => row.length > 0);
 
   sh.getRange(1, sh.getLastColumn() + 2, total.length, total[0].length).setValues(fillOutRange(total))
   .setNumberFormat("0.00").setBorder(true, true, true, true, true, true);
@@ -359,7 +368,7 @@ function calculateHours() {
       normalHrs > 0 ? msToTime(normalHrs) : "",
       otHrs > 0 ? msToTime(otHrs) : "",
       nightShiftHrs > 0 ? msToTime(nightShiftHrs) : "",
-      workLess > 0 ? msToTime(workLess) : "",
+      !IS_HOURLY && workLess > 0 ? msToTime(workLess) : "",
     ];
   }
   
