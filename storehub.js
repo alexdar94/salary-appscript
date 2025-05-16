@@ -286,7 +286,7 @@ function calcTotal() {
     ['PH hrs', fPhHrs, phSal],
     ['PH OT', fPhOT, phOTSal],
     fTripleHrs !== 0 ? ['Triple hrs', fTripleHrs, tripleSal] : [],
-    ['Night shift hrs', fNightShift, IS_HOURLY ? fNightShift * NS_RATE : fNightShift * (NS_RATE - STAFF_HOURLY_SALARY)],
+    fNightShift !== 0 ? ['Night shift hrs', fNightShift, IS_HOURLY ? fNightShift * NS_RATE : fNightShift * (NS_RATE - STAFF_HOURLY_SALARY)] : [],
     !IS_HOURLY ? ['Work less', fWorkLess, fWorkLess * STAFF_HOURLY_SALARY] : [],
     calcAllowance(fTotalHrs, fWorkLess),
     [, 'Overtime Total', phSal + normalOTSal + phOTSal + tripleSal]
