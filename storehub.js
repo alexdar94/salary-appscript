@@ -210,7 +210,7 @@ function finalFormat() {
   sh.autoResizeColumns(1, lastCol);
   sh.setColumnWidth(lastCol - 3, 5);
   sh.setColumnWidths(2, lastCol - 5, 50);
-  sh.getRange(1, 1, sh.getLastRow(), sh.getLastColumn()).setBackgroundColor(null);
+  sh.getRange(1, 1, sh.getLastRow(), sh.getLastColumn()).setBackgroundColor(null).setFontFamily("Arial");
   // Work less
   sh.getRange(1, lastCol - 4, lastRow, 1).setBorder(true, true, true, true, false, false);
   // Night shift
@@ -224,7 +224,7 @@ function finalFormat() {
   // Date first column
   sh.getRange(1, 1, lastRow, 1).setBorder(true, true, true, true, false, false);
   // Times
-  sh.getRange(1, 2, lastRow, lastCol - 10).setBorder(true, true, true, true, false, false);
+  sh.getRange(1, 2, lastRow, lastCol - 10).setBorder(true, true, true, true, false, false).setNumberFormat('HH:mm');
   // First date row
   sh.getRange(1, 1, 1, lastCol - 4).setBorder(true, true, true, true, null, null);
   drawWeekBorder();
