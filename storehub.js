@@ -17,11 +17,12 @@ const ARRAY_DAY_OFFSET = ROW_OFFSET + 1;
 const ARRAY_TIME_OFFSET = COLUMN_OFFSET + 1;
 
 // Constants sheet values
-const SIX_WORKDAY_HRS = CONSTANTS.getRange('B1').getValue()-CONSTANTS.getRange('B2').getValue();
-const FIVE_WORKDAY_HRS = CONSTANTS.getRange('C1').getValue()-CONSTANTS.getRange('B2').getValue();
+const SIX_WORKDAY_HRS = (CONSTANTS.getRange('B1').getValue()-CONSTANTS.getRange('B2').getValue()) / (1000 * 60 * 60);
+const FIVE_WORKDAY_HRS = (CONSTANTS.getRange('C1').getValue()-CONSTANTS.getRange('B2').getValue()) / (1000 * 60 * 60);
 const STAFF_MONTHLY_SALARY = CONSTANTS.getRange('H3').getValue();
 const STAFF_HOURLY_SALARY = STAFF_MONTHLY_SALARY === "" ?
                             CONSTANTS.getRange('H4').getValue() : STAFF_MONTHLY_SALARY/FT_WORK_DAYS/SIX_WORKDAY_HRS;
+const ALLOWANCE = CONSTANTS.getRange('H5').getValue();
 const IS_HOURLY = STAFF_MONTHLY_SALARY === "";
 const OT_RATE = STAFF_HOURLY_SALARY * 1.5;
 const NS_RATE = CONSTANTS.getRange('B6').getValue(); 
@@ -74,6 +75,10 @@ function msToTime(s) {
   hrs = hrs < 10 ? "0" + hrs : hrs;
   mins = mins < 10 ? "0" + mins : mins;
   return hrs + ':' + mins; 
+}
+
+function intToMs(s) {
+  return s * 60 * 60 * 1000;
 }
 
 function durationStrToInt(s) {
@@ -230,8 +235,22 @@ function finalFormat() {
   highlightWarning();
 }
 
+function calcAllowance(fTotalHrs, fWorkLess) {
+  let a = 0;
+  let hr = fTotalHrs;
+  if (IS_HOURLY) {
+    a = hr * ALLOWANCE;
+  } else {
+    hr = ((FT_WORK_DAYS - MC_DATES.length - UL_DATES.length) * SIX_WORKDAY_HRS) - fWorkLess;
+    a = (hr / (FT_WORK_DAYS * SIX_WORKDAY_HRS)) * ALLOWANCE; 
+    a = a > ALLOWANCE ? ALLOWANCE : a;
+  }
+  return ['Allowance', hr, a];
+}
+
 function calcTotal() {
-  const data = sh.getRange(ROW_OFFSET + 1, sh.getLastColumn() - 3, sh.getLastRow() - ROW_OFFSET, 4).getDisplayValues();
+  const data = sh.getRange(ROW_OFFSET + 1, sh.getLastColumn() - 4, sh.getLastRow() - ROW_OFFSET, 5).getValues();
+  let fTotalHrs = 0;
   let fNormalHrs = 0;
   let fPhHrs = 0;
   let fNormalOT = 0;
@@ -239,7 +258,9 @@ function calcTotal() {
   let fNightShift = 0;
   let fWorkLess = 0;
   for (i = 0; i < data.length; i++) {
-    const [normal, ot, nightShift, workLess] = data[i];
+    const [total, normal, ot, nightShift, workLess] = data[i];
+    if (total === '') continue;
+    fTotalHrs += durationStrToInt(total);
     if (PH_DATES.includes(i + 1)) {
       fPhHrs += durationStrToInt(normal);
       fPhOT += durationStrToInt(ot);
@@ -253,11 +274,12 @@ function calcTotal() {
   const total = [
     ['', 'Pay rate', !IS_HOURLY ? STAFF_MONTHLY_SALARY : STAFF_HOURLY_SALARY],
     ['Normal hrs', fNormalHrs, fNormalHrs * STAFF_HOURLY_SALARY],
-    ['PH hrs', fPhHrs, fPhHrs * STAFF_HOURLY_SALARY * 2],
     ['Normal OT', fNormalOT, fNormalOT * STAFF_HOURLY_SALARY * 1.5],
+    ['PH hrs', fPhHrs, fPhHrs * STAFF_HOURLY_SALARY * 2],
     ['PH OT', fPhOT, fPhOT * STAFF_HOURLY_SALARY * 3],
     ['Night shift hrs', fNightShift, IS_HOURLY ? fNightShift * NS_RATE : fNightShift * (NS_RATE - STAFF_HOURLY_SALARY)],
     !IS_HOURLY ? ['Work less', fWorkLess, fWorkLess * STAFF_HOURLY_SALARY] : [],
+    calcAllowance(fTotalHrs, fWorkLess),
     [, 'Overtime Total', (fPhHrs * STAFF_HOURLY_SALARY * 2) + (fNormalOT * STAFF_HOURLY_SALARY * 1.5) + (fPhOT * STAFF_HOURLY_SALARY * 3)]
   ];
 
@@ -279,8 +301,8 @@ function calculateHours() {
     const isPH = PH_DATES.includes(currDate.getDate());
     const isAL = AL_DATES.includes(currDate.getDate());
     const isMC = MC_DATES.includes(currDate.getDate());
-    const NORMAL_WORK_HOURS = NINEHR_DATES.includes(currDate.getDate()) ? FIVE_WORKDAY_HRS : SIX_WORKDAY_HRS;
-    
+    const NORMAL_WORK_HOURS = NINEHR_DATES.includes(currDate.getDate()) ? intToMs(FIVE_WORKDAY_HRS) : intToMs(SIX_WORKDAY_HRS);
+
     let totalWorkHrs = 0;
     let normalHrs = 0;
     let dayShiftHrs = 0;
