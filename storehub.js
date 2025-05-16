@@ -308,8 +308,6 @@ function calculateHours() {
     const nsStartDate = new Date(`${currDate.getFullYear()}-${currDate.getMonth() + 1}-${currDate.getDate()} ${NS_START}`);
     const hasNS = NS_DATES.includes(currDate.getDate());
     const isPH = PH_DATES.includes(currDate.getDate());
-    const isAL = AL_DATES.includes(currDate.getDate());
-    const isMC = MC_DATES.includes(currDate.getDate());
     const NORMAL_WORK_HOURS = NINEHR_DATES.includes(currDate.getDate()) ? intToMs(FIVE_WORKDAY_HRS) : intToMs(SIX_WORKDAY_HRS);
 
     let totalWorkHrs = 0;
@@ -336,40 +334,38 @@ function calculateHours() {
       }
     }
 
-    // Calc for normal case
-    if (totalWorkHrs >= NORMAL_WORK_HOURS) {
-      normalHrs = NORMAL_WORK_HOURS;
-      otHrs = totalWorkHrs - NORMAL_WORK_HOURS;
-    } else if (totalWorkHrs > 0) {
-      normalHrs = totalWorkHrs;
-      workLess = NORMAL_WORK_HOURS - totalWorkHrs;
-    }
-
-    // Calc for night shift case
-    if (hasNS && !isPH) {
-      if (normalHrs > dayShiftHrs) normalHrs = dayShiftHrs;
-      if (OT_RATE >= NS_RATE) {
-        nightShiftHrs = otHrs >= nightShiftHrs ? 0 : nightShiftHrs - otHrs;
-      } else {
-        otHrs = otHrs >= nightShiftHrs ? otHrs - nightShiftHrs : 0;
-      }
+    if (totalWorkHrs === 0) {
+      hours[i+1] = ["", "", "", "", ""];
     } else {
-      nightShiftHrs = 0;
-    }
+      // Calc for normal case
+      if (totalWorkHrs >= NORMAL_WORK_HOURS) {
+        normalHrs = NORMAL_WORK_HOURS;
+        otHrs = totalWorkHrs - NORMAL_WORK_HOURS;
+      } else if (totalWorkHrs > 0) {
+        normalHrs = totalWorkHrs;
+        workLess = NORMAL_WORK_HOURS - totalWorkHrs;
+      }
 
-    // Calc for MC or AL
-    if ((isMC || isAL) && !isPH) {
-      totalWorkHrs = NORMAL_WORK_HOURS;
-      normalHrs = NORMAL_WORK_HOURS;
-    }
+      // Calc for night shift case
+      if (hasNS && !isPH) {
+        if (normalHrs > dayShiftHrs) normalHrs = dayShiftHrs;
+        if (OT_RATE >= NS_RATE) {
+          nightShiftHrs = otHrs >= nightShiftHrs ? 0 : nightShiftHrs - otHrs;
+        } else {
+          otHrs = otHrs >= nightShiftHrs ? otHrs - nightShiftHrs : 0;
+        }
+      } else {
+        nightShiftHrs = 0;
+      }
 
-    hours[i+1] = [
-      totalWorkHrs > 0 ? msToTime(totalWorkHrs) : "", 
-      normalHrs > 0 ? msToTime(normalHrs) : "",
-      otHrs > 0 ? msToTime(otHrs) : "",
-      nightShiftHrs > 0 ? msToTime(nightShiftHrs) : "",
-      !IS_HOURLY && workLess > 0 ? msToTime(workLess) : "",
-    ];
+      hours[i+1] = [
+        totalWorkHrs > 0 ? msToTime(totalWorkHrs) : "", 
+        normalHrs > 0 ? msToTime(normalHrs) : "",
+        otHrs > 0 ? msToTime(otHrs) : "",
+        nightShiftHrs > 0 ? msToTime(nightShiftHrs) : "",
+        !IS_HOURLY && workLess > 0 ? msToTime(workLess) : "",
+      ];
+    }
   }
   
   sh.getRange(1, sh.getLastColumn() + 1, sh.getLastRow(), hours[0].length)
