@@ -376,7 +376,7 @@ function calculateHours() {
 function createTimesheet(name, data) {
   const days = [];
   days[0] = ["Date"];
-  for (day = 1; day <= LAST_DAY_OF_MONTH; day++) {
+  for (let day = 1; day <= LAST_DAY_OF_MONTH; day++) {
     days[day] = [new Date(YEAR, MONTH - 1, day)];
   }
 
@@ -388,6 +388,7 @@ function createTimesheet(name, data) {
   let closingEarly = new Date(`${FIRST} ${CONSTANTS.getRange('B11').getValue()}`);
   let closing = new Date(`${FIRST} ${CONSTANTS.getRange('B12').getValue()}`);
   const toChecks = [];
+  
   data.forEach(e => {
     const d = e.split(" ");
     const date = d[0];
@@ -433,21 +434,18 @@ function createTimesheet(name, data) {
 }
 
 function generateFull() {
-  let curr = '';
   let data = [];
-  sTEMP.getRange(2, 2, sTEMP.getLastRow() - 1, sTEMP.getLastColumn() - 1).getValues().forEach((e, i) => {
-    if (e[0] !== '') {
-      if (curr !== '') createTimesheet(curr, data);
-      curr = e[0];
-      data = [];
-      return;
+  sTEMP.getRange(2, 2, sTEMP.getLastRow() - 1, 4).getValues().forEach((e, i) => {
+    const [name, , timeIn, timeOut] = e;
+    if (name !== '') {
+      data.push({ name, time: [] });
+    } else {
+      if (timeIn !== '') data[data.length-1].time.push(timeIn);
+      if (timeOut !== '') data[data.length-1].time.push(timeOut);
     }
-    if (e[2] !== '') data.push(e[2]);
-    if (e[3] !== '') data.push(e[3]);
   });
 
-  // Create for last staff
-  createTimesheet(curr, data);
+  data.forEach(e => createTimesheet(e.name, e.time));
 }
 
 function sanitize() {

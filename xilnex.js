@@ -377,7 +377,7 @@ function calculateHours() {
 function createTimesheet(name, data) {
   const days = [];
   days[0] = ["Date"];
-  for (day = 1; day <= LAST_DAY_OF_MONTH; day++) {
+  for (let day = 1; day <= LAST_DAY_OF_MONTH; day++) {
     days[day] = [new Date(YEAR, MONTH - 1, day)];
   }
 
@@ -389,7 +389,7 @@ function createTimesheet(name, data) {
   let closingEarly = new Date(`${FIRST} ${CONSTANTS.getRange('B11').getValue()}`);
   let closing = new Date(`${FIRST} ${CONSTANTS.getRange('B12').getValue()}`);
   const toChecks = [];
-
+  
   data.forEach(e => {
     const d = e.split(" ");
     const date = d[0];
@@ -436,13 +436,14 @@ function createTimesheet(name, data) {
 
 function generateFull() {
   let data = {};
-  sTEMP.getRange(2, 3, sTEMP.getLastRow() - 1, 6).getValues().forEach((e, i) => {
-    const d = e[4].split("/"); 
-    const record = `${d[1]}/${d[0]}/${d[2]} X ${e[5]}`;
-    if (data[e[0]] === undefined) {
-      data[e[0]] = [record];
+  sTEMP.getRange(2, 3, sTEMP.getLastRow() - 1, 6).getValues().forEach((e) => {
+    const [lastName, fullName, email, trans, date, time] = e;
+    const [d, m, y] = date.split("/"); 
+    const record = `${m}/${d}/${y} X ${time}`;
+    if (data[lastName] === undefined) {
+      data[lastName] = [record];
     } else {
-      data[e[0]] = [...data[e[0]], record];
+      data[lastName] = [...data[lastName], record];
     }
   });
   
