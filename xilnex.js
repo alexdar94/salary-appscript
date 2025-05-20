@@ -1,26 +1,9 @@
 const ss = SpreadsheetApp.getActiveSpreadsheet();
-ss.setSpreadsheetTimeZone('Asia/Singapore');
 const sTEMP = ss.getSheetByName('temp');
 const CONSTANTS = ss.getSheetByName("Constants");
 const sh = ss.getSheetByName(CONSTANTS.getRange('H2').getValue());
 sTEMP.getRange(2, 2, sTEMP.getLastRow() - 1, sTEMP.getLastColumn() - 1).setNumberFormat('@STRING@');
 const TIMEZONE = Session.getScriptTimeZone();
-
-const STAFF_MONTHLY_SALARY = CONSTANTS.getRange('H3').getValue();
-const STAFF_HOURLY_SALARY = STAFF_MONTHLY_SALARY === "" ?
-                            CONSTANTS.getRange('H4').getValue() : STAFF_MONTHLY_SALARY/26/7.5;
-const IS_HOURLY = STAFF_MONTHLY_SALARY === "";
-const OT_RATE = STAFF_HOURLY_SALARY * 1.5;
-const NS_RATE = CONSTANTS.getRange('B6').getValue(); 
-const NS_DATES = expandStringToNumbers(CONSTANTS.getRange('H5').getValue());
-const NINEHR_DATES = expandStringToNumbers(CONSTANTS.getRange('H10').getValue());
-
-const MC_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('H6').getValue()); 
-const AL_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('H7').getValue());
-const UL_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('H8').getValue());
-
-const WARNING_DATES = expandStringToNumbers(CONSTANTS.getRange('H9').getValue());
-const PH_DATES = expandStringToNumbers(CONSTANTS.getRange('B7').getValue());
 
 const G2DATE = sTEMP.getRange('G2').getValue().split('/')
 const SHEET_DATE = new Date(`${G2DATE[1]}/${G2DATE[0]}/${G2DATE[2]}`);
@@ -28,13 +11,33 @@ const ONE_HR = 3600000;
 const MONTH = SHEET_DATE.getMonth() + 1;
 const YEAR = SHEET_DATE.getFullYear();
 const LAST_DAY_OF_MONTH = new Date(YEAR,MONTH,0).getDate();
-const NS_START = CONSTANTS.getRange('B4').getValue();
-const NS_END = CONSTANTS.getRange('B5').getValue();
-const WORKLESS_TH = CONSTANTS.getRange('B13').getDisplayValue();
+const FT_WORK_DAYS = 26;
 const ROW_OFFSET = 1;
 const COLUMN_OFFSET = 1;
 const ARRAY_DAY_OFFSET = ROW_OFFSET + 1;
 const ARRAY_TIME_OFFSET = COLUMN_OFFSET + 1;
+
+// Constants sheet values
+const SIX_WORKDAY_HRS = (CONSTANTS.getRange('B1').getValue()-CONSTANTS.getRange('B2').getValue()) / (1000 * 60 * 60);
+const FIVE_WORKDAY_HRS = (CONSTANTS.getRange('C1').getValue()-CONSTANTS.getRange('B2').getValue()) / (1000 * 60 * 60);
+const STAFF_MONTHLY_SALARY = CONSTANTS.getRange('H3').getValue();
+const STAFF_HOURLY_SALARY = STAFF_MONTHLY_SALARY === "" ?
+                            CONSTANTS.getRange('H4').getValue() : STAFF_MONTHLY_SALARY/FT_WORK_DAYS/SIX_WORKDAY_HRS;
+const ALLOWANCE = CONSTANTS.getRange('H5').getValue();
+const IS_HOURLY = STAFF_MONTHLY_SALARY === "";
+const OT_RATE = STAFF_HOURLY_SALARY * 1.5;
+const NS_RATE = CONSTANTS.getRange('B6').getValue(); 
+const NS_DATES = expandStringToNumbers(CONSTANTS.getRange('J2').getValue());
+const NINEHR_DATES = expandStringToNumbers(CONSTANTS.getRange('J7').getValue());
+const MC_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('J3').getValue()); 
+const AL_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('J4').getValue());
+const UL_DATES = IS_HOURLY ? [] : expandStringToNumbers(CONSTANTS.getRange('J5').getValue());
+const WARNING_DATES = expandStringToNumbers(CONSTANTS.getRange('J6').getValue());
+const PH_DATES = expandStringToNumbers(CONSTANTS.getRange('B7').getValue());
+const TRIPLE_DATES = expandStringToNumbers(CONSTANTS.getRange('J8').getValue());
+const NS_START = CONSTANTS.getRange('B4').getValue();
+const NS_END = CONSTANTS.getRange('B5').getValue();
+const WORKLESS_TH = CONSTANTS.getRange('B13').getDisplayValue();
 
 // Utility -----------------------------------------------------------------------------------
 function init() {
@@ -71,15 +74,19 @@ function msToTime(s) {
   var mins = s % 60;
   var hrs = (s - mins) / 60;
 
-  return hrs + ':' + mins + ':' + secs; // milliSecs are not shown but you can use ms if needed
+  hrs = hrs < 10 ? "0" + hrs : hrs;
+  mins = mins < 10 ? "0" + mins : mins;
+  return hrs + ':' + mins; 
 }
 
-function strDrToInt(str) {
-  if (str === "") return 0;
-  let d = str.split(':');
-  let hr = parseInt(d[0]);
-  let min = parseInt(d[1]);
-  return hr + (min / 60);
+function intToMs(s) {
+  return s * 60 * 60 * 1000;
+}
+
+function durationStrToInt(s) {
+  if (s === "") return 0;
+  const [hrs, mins] = s.split(':').map(Number);
+  return hrs + (mins / 60);
 }
 
 function expandStringToNumbers(str) {
@@ -93,6 +100,11 @@ function expandStringToNumbers(str) {
 
 function numToAlphabet(num) {
   return (num + 9).toString(36).toUpperCase();
+}
+
+function isCellEmpty(cell) {
+  const value = cell.getValue();
+  return value === null || value === undefined || value === '';
 }
 
 // Utility -----------------------------------------------------------------------------------
@@ -126,6 +138,41 @@ function highlightWarning() {
   if (WARNING_DATES.length > 0) sh.getRangeList(WARNING_DATES.map(w => `B${w+1}`)).setBackground("red");
 }
   
+function highlightDurationErrors() {
+  const lastColumn = sh.getLastColumn();
+  const lastRow = sh.getLastRow();
+  sh.getRange(1, lastColumn - 4, lastRow, 5).setBackgroundColor("white");
+
+  // Iterate through rows where Column B is not empty
+  for (let i = 2; i <= lastRow; i++) {
+    if (!isCellEmpty(sh.getRange(i, 2))) {
+      // Get the last 5 columns of the current row
+      const totalHrsCell = sh.getRange(i, lastColumn - 4); // Fifth last (Total hrs)
+      //const normalCell = sh.getRange(i, lastColumn - 3);  // Fourth last (Normal)
+      const otCell = sh.getRange(i, lastColumn - 2);      // Third last (OT)
+      const nightShCell = sh.getRange(i, lastColumn - 1); // Second last (Night sh)
+      //const workLessCell = sh.getRange(i, lastColumn);    // Last (Work less)
+
+      if (isCellEmpty(totalHrsCell)) {
+        totalHrsCell.setBackground('red');
+      } else {
+        // Check if Total hrs has duration more than 12 hours
+        if (durationStrToInt(totalHrsCell.getValue()) > 12) { // 12 hours in milliseconds
+          totalHrsCell.setBackground('red');
+        }
+        // Check if OT has duration more than 4.5 hours
+        if (!isCellEmpty(otCell) && durationStrToInt(otCell.getValue()) > 4.5) { // 12 hours in milliseconds
+          otCell.setBackground('red');
+        }
+        // Check if Night sh has duration more than 4.5 hours
+        if (!isCellEmpty(nightShCell) && durationStrToInt(nightShCell.getValue()) > 4.5) { // 12 hours in milliseconds
+          nightShCell.setBackground('red');
+        }
+      }
+    }
+  }
+}
+
 // If clock time is before OPENING, or between CLOSING_EARLY and CLOSING
 function highlightToBeEditedTime() {
   const days = sh.getRange(ARRAY_DAY_OFFSET, ARRAY_TIME_OFFSET, LAST_DAY_OF_MONTH, sh.getLastColumn() - COLUMN_OFFSET).getValues();
@@ -145,8 +192,8 @@ function highlightToBeEditedTime() {
 }
 
 function clearControl() {
-  var rangeToClear = CONSTANTS.getRange("H2:H10"); 
-  rangeToClear.clearContent();
+  CONSTANTS.getRange('H2:H5').clearContent();
+  CONSTANTS.getRange('J2:J8').clearContent();
 }
 
 function drawWeekBorder(mSheet) {
@@ -165,7 +212,7 @@ function finalFormat() {
   sh.autoResizeColumns(1, lastCol);
   sh.setColumnWidth(lastCol - 3, 5);
   sh.setColumnWidths(2, lastCol - 5, 50);
-  sh.getRange(1, 1, sh.getLastRow(), sh.getLastColumn()).setBackgroundColor(null);
+  sh.getRange(1, 1, sh.getLastRow(), sh.getLastColumn()).setBackgroundColor(null).setFontFamily("Arial");
   // Work less
   sh.getRange(1, lastCol - 4, lastRow, 1).setBorder(true, true, true, true, false, false);
   // Night shift
@@ -179,7 +226,7 @@ function finalFormat() {
   // Date first column
   sh.getRange(1, 1, lastRow, 1).setBorder(true, true, true, true, false, false);
   // Times
-  sh.getRange(1, 2, lastRow, lastCol - 10).setBorder(true, true, true, true, false, false);
+  sh.getRange(1, 2, lastRow, lastCol - 10).setBorder(true, true, true, true, false, false).setNumberFormat('HH:mm');
   // First date row
   sh.getRange(1, 1, 1, lastCol - 4).setBorder(true, true, true, true, null, null);
   drawWeekBorder();
@@ -190,35 +237,61 @@ function finalFormat() {
   highlightWarning();
 }
 
-function calcTotal() {
-  const data = sh.getRange(ROW_OFFSET + 1, sh.getLastColumn() - 3, sh.getLastRow() - ROW_OFFSET, 4).getDisplayValues();
-  let normalHrs = 0;
-  let phHrs = 0;
-  let normalOT = 0;
-  let phOT = 0;
-  let nightShift = 0;
-  let workLess = 0;
-  for (i = 0; i < data.length; i++) {
-    if (PH_DATES.includes(i + 1)) {
-      phHrs += strDrToInt(data[i][0]);
-      phOT += strDrToInt(data[i][1]);
-      continue;
-    }
-    normalHrs += strDrToInt(data[i][0]);
-    normalOT += strDrToInt(data[i][1]);
-    nightShift += strDrToInt(data[i][2]);
-    if (strDrToInt(data[i][3]) > strDrToInt(WORKLESS_TH)) workLess += strDrToInt(data[i][3]);
+function calcAllowance(fTotalHrs, fWorkLess) {
+  let a = 0;
+  let hr = fTotalHrs;
+  if (IS_HOURLY) {
+    a = hr * ALLOWANCE;
+  } else {
+    hr = ((FT_WORK_DAYS - MC_DATES.length - UL_DATES.length) * SIX_WORKDAY_HRS) - fWorkLess;
+    a = (hr / (FT_WORK_DAYS * SIX_WORKDAY_HRS)) * ALLOWANCE; 
+    a = a > ALLOWANCE ? ALLOWANCE : a;
   }
+  return ['Allowance', hr, a];
+}
+
+function calcTotal() {
+  const data = sh.getRange(ROW_OFFSET + 1, sh.getLastColumn() - 4, sh.getLastRow() - ROW_OFFSET, 5).getValues();
+  let fTotalHrs = 0;
+  let fNormalHrs = 0;
+  let fPhHrs = 0;
+  let fNormalOT = 0;
+  let fPhOT = 0;
+  let fTripleHrs = 0;
+  let fNightShift = 0;
+  let fWorkLess = 0;
+  for (i = 0; i < data.length; i++) {
+    const [total, normal, ot, nightShift, workLess] = data[i];
+    if (total === '') continue;
+    fTotalHrs += durationStrToInt(total);
+    if (TRIPLE_DATES.includes(i + 1)) {
+      fTripleHrs += durationStrToInt(total);
+    } else if (PH_DATES.includes(i + 1)) {
+      fPhHrs += durationStrToInt(normal);
+      fPhOT += durationStrToInt(ot);
+    } else {
+      fNormalHrs += durationStrToInt(normal);
+      fNormalOT += durationStrToInt(ot);
+      fNightShift += durationStrToInt(nightShift);
+      if (durationStrToInt(workLess) > durationStrToInt(WORKLESS_TH)) fWorkLess += durationStrToInt(workLess);
+    }
+  }
+  const normalOTSal = fNormalOT * STAFF_HOURLY_SALARY * 1.5;
+  const phOTSal = fPhOT * STAFF_HOURLY_SALARY * 3;  
+  const phSal = fPhHrs * STAFF_HOURLY_SALARY * 2;
+  const tripleSal = fTripleHrs * STAFF_HOURLY_SALARY * 3;
   const total = [
     ['', 'Pay rate', !IS_HOURLY ? STAFF_MONTHLY_SALARY : STAFF_HOURLY_SALARY],
-    ['Normal hrs', normalHrs, normalHrs * STAFF_HOURLY_SALARY],
-    ['PH hrs', phHrs, phHrs * STAFF_HOURLY_SALARY * 2],
-    ['Normal OT', normalOT, normalOT * STAFF_HOURLY_SALARY * 1.5],
-    ['PH OT', phOT, phOT * STAFF_HOURLY_SALARY * 3],
-    ['Night shift hrs', nightShift, IS_HOURLY ? nightShift * NS_RATE : nightShift * (NS_RATE - STAFF_HOURLY_SALARY)],
-    !IS_HOURLY ? ['Work less', workLess, workLess * STAFF_HOURLY_SALARY] : [],
-    [, 'Overtime Total', (phHrs * STAFF_HOURLY_SALARY * 2) + (normalOT * STAFF_HOURLY_SALARY * 1.5) + (phOT * STAFF_HOURLY_SALARY * 3)]
-  ];
+    ['Normal hrs', fNormalHrs, fNormalHrs * STAFF_HOURLY_SALARY],
+    ['Normal OT', fNormalOT, normalOTSal],
+    ['PH hrs', fPhHrs, phSal],
+    ['PH OT', fPhOT, phOTSal],
+    fTripleHrs !== 0 ? ['Triple hrs', fTripleHrs, tripleSal] : [],
+    fNightShift !== 0 ? ['Night shift hrs', fNightShift, IS_HOURLY ? fNightShift * NS_RATE : fNightShift * (NS_RATE - STAFF_HOURLY_SALARY)] : [],
+    !IS_HOURLY ? ['Work less', fWorkLess, fWorkLess * STAFF_HOURLY_SALARY] : [],
+    calcAllowance(fTotalHrs, fWorkLess),
+    [, 'Overtime Total', phSal + normalOTSal + phOTSal + tripleSal]
+  ].filter(row => row.length > 0);
 
   sh.getRange(1, sh.getLastColumn() + 2, total.length, total[0].length).setValues(fillOutRange(total))
   .setNumberFormat("0.00").setBorder(true, true, true, true, true, true);
@@ -236,11 +309,8 @@ function calculateHours() {
     const nsStartDate = new Date(`${currDate.getFullYear()}-${currDate.getMonth() + 1}-${currDate.getDate()} ${NS_START}`);
     const hasNS = NS_DATES.includes(currDate.getDate());
     const isPH = PH_DATES.includes(currDate.getDate());
-    const isAL = AL_DATES.includes(currDate.getDate());
-    const isMC = MC_DATES.includes(currDate.getDate());
-    const NORMAL_WORK_HOURS = NINEHR_DATES.includes(currDate.getDate()) ? 
-                              CONSTANTS.getRange('C1').getValue()-CONSTANTS.getRange('B2').getValue() :
-                              CONSTANTS.getRange('B1').getValue()-CONSTANTS.getRange('B2').getValue();
+    const NORMAL_WORK_HOURS = NINEHR_DATES.includes(currDate.getDate()) ? intToMs(FIVE_WORKDAY_HRS) : intToMs(SIX_WORKDAY_HRS);
+
     let totalWorkHrs = 0;
     let normalHrs = 0;
     let dayShiftHrs = 0;
@@ -265,44 +335,43 @@ function calculateHours() {
       }
     }
 
-    // Calc for normal case
-    if (totalWorkHrs >= NORMAL_WORK_HOURS) {
-      normalHrs = NORMAL_WORK_HOURS;
-      otHrs = totalWorkHrs - NORMAL_WORK_HOURS;
-    } else if (totalWorkHrs > 0) {
-      normalHrs = totalWorkHrs;
-      workLess = NORMAL_WORK_HOURS - totalWorkHrs;
-    }
-
-    // Calc for night shift case
-    if (hasNS && !isPH) {
-      if (normalHrs > dayShiftHrs) normalHrs = dayShiftHrs;
-      if (OT_RATE >= NS_RATE) {
-        nightShiftHrs = otHrs >= nightShiftHrs ? 0 : nightShiftHrs - otHrs;
-      } else {
-        otHrs = otHrs >= nightShiftHrs ? otHrs - nightShiftHrs : 0;
-      }
+    if (totalWorkHrs === 0) {
+      hours[i+1] = ["", "", "", "", ""];
     } else {
-      nightShiftHrs = 0;
-    }
+      // Calc for normal case
+      if (totalWorkHrs >= NORMAL_WORK_HOURS) {
+        normalHrs = NORMAL_WORK_HOURS;
+        otHrs = totalWorkHrs - NORMAL_WORK_HOURS;
+      } else if (totalWorkHrs > 0) {
+        normalHrs = totalWorkHrs;
+        workLess = NORMAL_WORK_HOURS - totalWorkHrs;
+      }
 
-    // Calc for MC or AL
-    if ((isMC || isAL) && !isPH) {
-      totalWorkHrs = NORMAL_WORK_HOURS;
-      normalHrs = NORMAL_WORK_HOURS;
-    }
+      // Calc for night shift case
+      if (hasNS && !isPH) {
+        if (normalHrs > dayShiftHrs) normalHrs = dayShiftHrs;
+        if (OT_RATE >= NS_RATE) {
+          nightShiftHrs = otHrs >= nightShiftHrs ? 0 : nightShiftHrs - otHrs;
+        } else {
+          otHrs = otHrs >= nightShiftHrs ? otHrs - nightShiftHrs : 0;
+        }
+      } else {
+        nightShiftHrs = 0;
+      }
 
-    hours[i+1] = [
-      totalWorkHrs > 0 ? msToTime(totalWorkHrs) : "", 
-      normalHrs > 0 ? msToTime(normalHrs) : "",
-      otHrs > 0 ? msToTime(otHrs) : "",
-      nightShiftHrs > 0 ? msToTime(nightShiftHrs) : "",
-      workLess > 0 ? msToTime(workLess) : "",
-    ];
+      hours[i+1] = [
+        totalWorkHrs > 0 ? msToTime(totalWorkHrs) : "", 
+        normalHrs > 0 ? msToTime(normalHrs) : "",
+        otHrs > 0 ? msToTime(otHrs) : "",
+        nightShiftHrs > 0 ? msToTime(nightShiftHrs) : "",
+        !IS_HOURLY && workLess > 0 ? msToTime(workLess) : "",
+      ];
+    }
   }
   
-  sh.getRange(1, sh.getLastColumn() + 1, sh.getLastRow(), hours[0].length).setValues(fillOutRange(hours));
-  sh.getRange(2, 2, sh.getLastRow() - ROW_OFFSET, sh.getLastColumn() - COLUMN_OFFSET).setNumberFormat("HH:mm");
+  sh.getRange(1, sh.getLastColumn() + 1, sh.getLastRow(), hours[0].length)
+  .setNumberFormat("@STRING@").setValues(fillOutRange(hours));
+  highlightDurationErrors();
 }
 
 function createTimesheet(name, data) {
